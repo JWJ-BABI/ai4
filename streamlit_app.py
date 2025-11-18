@@ -14,22 +14,143 @@ import gdown
 st.set_page_config(page_title="Fastai 이미지 분류기", page_icon="🤖", layout="wide")
 st.markdown("""
 <style>
-h1 { color:#1E88E5; text-align:center; font-weight:800; letter-spacing:-0.5px; }
-.prediction-box { background:#E3F2FD; border:2px solid #1E88E5; border-radius:12px; padding:22px; text-align:center; margin:16px 0; box-shadow:0 4px 10px rgba(0,0,0,.06);}
-.prediction-box h2 { color:#0D47A1; margin:0; font-size:2.0rem; }
-.prob-card { background:#fff; border-radius:10px; padding:12px 14px; margin:10px 0; box-shadow:0 2px 6px rgba(0,0,0,.06); }
+/* 키프레임 (애니메이션) */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fillBar {
+  from { width: 0% !important; }
+  /* 'to'는 인라인 스타일의 width 값을 사용합니다 */
+}
+
+/* 페이지 전체 배경 */
+body {
+  background: linear-gradient(135deg, #f5f7fa 0%, #e3e8f0 100%);
+}
+
+h1 { 
+  color:#1E88E5; 
+  text-align:center; 
+  font-weight:800; 
+  letter-spacing:-0.5px; 
+  text-shadow: 0 2px 5px rgba(0,0,0,.08);
+}
+
+/* 예측 박스 */
+.prediction-box { 
+  background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%); 
+  border:1px solid #1E88E5; 
+  border-radius:16px; 
+  padding:24px; 
+  text-align:center; 
+  margin:16px 0; 
+  box-shadow:0 6px 15px rgba(0,0,0,.1);
+  animation: fadeIn .5s ease-out;
+}
+.prediction-box h2 { color:#0D47A1; margin:0; font-size:2.2rem; font-weight:700; }
+
+/* 확률 바 카드 */
+.prob-card { 
+  background:#fff; 
+  border-radius:12px; 
+  padding:14px 16px; 
+  margin:12px 0; 
+  box-shadow:0 3px 8px rgba(0,0,0,.07); 
+  transition: transform .3s, box-shadow .3s;
+  animation: fadeIn .5s ease-out;
+}
+.prob-card:hover {
+  transform: scale(1.02);
+  box-shadow:0 5px 12px rgba(0,0,0,.1);
+}
 .prob-bar-bg { background:#ECEFF1; border-radius:6px; width:100%; height:22px; overflow:hidden; }
-.prob-bar-fg { background:#4CAF50; height:100%; border-radius:6px; transition:width .5s; }
-.prob-bar-fg.highlight { background:#FF6F00; }
-.info-grid { display:grid; grid-template-columns:repeat(12,1fr); gap:14px; }
-.card { border:1px solid #e3e6ea; border-radius:12px; padding:14px; background:#fff; box-shadow:0 2px 6px rgba(0,0,0,.05); }
-.card h4 { margin:0 0 10px; font-size:1.05rem; color:#0D47A1; }
-.thumb { width:100%; height:auto; border-radius:10px; display:block; }
-.thumb-wrap { position:relative; display:block; }
-.play { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:60px; height:60px; border-radius:50%; background:rgba(0,0,0,.55); }
-.play:after{ content:''; border-style:solid; border-width:12px 0 12px 20px; border-color:transparent transparent transparent #fff; position:absolute; top:50%; left:50%; transform:translate(-40%,-50%); }
-.helper { color:#607D8B; font-size:.9rem; }
-.stFileUploader, .stCameraInput { border:2px dashed #1E88E5; border-radius:12px; padding:16px; background:#f5fafe; }
+.prob-bar-fg { 
+  background:#4CAF50; 
+  height:100%; 
+  border-radius:6px; 
+  transition:width .5s; 
+  animation: fillBar 1s ease-out;
+}
+.prob-bar-fg.highlight { background: linear-gradient(90deg, #FF6F00 0%, #FFB300 100%); }
+
+/* 콘텐츠 그리드 */
+.info-grid { 
+  display:grid; 
+  grid-template-columns:repeat(12,1fr); 
+  gap:16px; 
+  animation: fadeIn .5s ease-out;
+}
+.card { 
+  border:1px solid #dbe2e8; 
+  border-radius:14px; 
+  padding:16px; 
+  background:#fff; 
+  box-shadow:0 3px 8px rgba(0,0,0,.07); 
+  transition: transform .3s, box-shadow .3s;
+}
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 15px rgba(0,0,0,.1);
+}
+.card h4 { margin:0 0 12px; font-size:1.1rem; color:#0D47A1; border-bottom: 2px solid #E3F2FD; padding-bottom: 8px; }
+
+/* 썸네일/플레이 버튼 */
+.thumb { 
+  width:100%; 
+  height:auto; 
+  border-radius:10px; 
+  display:block; 
+  transition: transform .3s ease;
+}
+.thumb-wrap { 
+  position:relative; 
+  display:block; 
+  border-radius:10px; 
+  overflow:hidden; /* 썸네일이 래퍼를 뚫고 나가지 않도록 */
+}
+.thumb-wrap:hover .thumb {
+  transform: scale(1.05);
+}
+.thumb-wrap:hover .play {
+  background: rgba(220, 0, 0, .75); /* 호버 시 빨간색 */
+  transform: translate(-50%,-50%) scale(1.1);
+}
+.play { 
+  position:absolute; 
+  top:50%; 
+  left:50%; 
+  transform:translate(-50%,-50%); 
+  width:50px; 
+  height:50px; 
+  border-radius:50%; 
+  background:rgba(0,0,0,.6); 
+  transition: background .3s, transform .3s;
+}
+.play:after{ 
+  content:''; 
+  border-style:solid; 
+  border-width:10px 0 10px 16px; /* 크기 살짝 줄임 */
+  border-color:transparent transparent transparent #fff; 
+  position:absolute; 
+  top:50%; 
+  left:50%; 
+  transform:translate(-40%,-50%); 
+}
+
+.helper { color:#607D8B; font-size:.85rem; margin-top: 8px; }
+
+/* 업로더/카메라 */
+.stFileUploader, .stCameraInput { 
+  border:3px dashed #1E88E5; 
+  border-radius:16px; 
+  padding:20px; 
+  background:#f5fafe; 
+  transition: background .3s;
+}
+.stFileUploader:hover, .stCameraInput:hover {
+    background: #e9f5ff;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -71,25 +192,25 @@ st.markdown("---")
 CONTENT_BY_LABEL: dict[str, dict[str, list[str]]] = {
 
      labels[0]: {
-       "texts": ["GS25는 혜자도시락이 유명합니다."],
-       "images": ["https://pimg.mk.co.kr/news/cms/202312/14/news-p.v1.20231214.efe9074cdefc4ecfb54ff6ba779a14bd.jpg"],
-       "videos": ["https://www.youtube.com/watch?v=Yr9Qrvv0NyA"]
+        "texts": ["GS25는 혜자도시락이 유명합니다."],
+        "images": ["https://pimg.mk.co.kr/news/cms/202312/14/news-p.v1.20231214.efe9074cdefc4ecfb54ff6ba779a14bd.jpg"],
+        "videos": ["https://www.youtube.com/watch?v=Yr9Qrvv0NyA"]
      },
      labels[1]: {
-       "texts": ["세븐일레븐은 일본 콜라보 상품을 많이 팔아요."],
-       "images": ["https://i.ytimg.com/vi/NC6ZjLfKeIo/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLDzifoNouAFYF5htj1PteTQhg8aRg"],
-       "videos": ["https://www.youtube.com/watch?v=mxN64Bw3caQ"]
+        "texts": ["세븐일레븐은 일본 콜라보 상품을 많이 팔아요."],
+        "images": ["https://i.ytimg.com/vi/NC6ZjLfKeIo/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLDzifoNouAFYF5htj1PteTQhg8aRg"],
+        "videos": ["https://www.youtube.com/watch?v=mxN64Bw3caQ"]
      },
      labels[2]: {
-       "texts": ["씨유는 백종도시락이 유명합니다."],
-       "images": ["https://flexible.img.hani.co.kr/flexible/normal/800/232/imgdb/original/2022/0412/20220412502070.jpg"],
-       "videos": ["https://www.youtube.com/shorts/q38uSXWTAeE","https://www.youtube.com/shorts/LWHSvZc6k_g"]
+        "texts": ["씨유는 백종도시락이 유명합니다."],
+        "images": ["https://flexible.img.hani.co.kr/flexible/normal/800/232/imgdb/original/2022/0412/20220412502070.jpg"],
+        "videos": ["https://www.youtube.com/shorts/q38uSXWTAeE","https://www.youtube.com/shorts/LWHSvZc6k_g"]
      },
 
      labels[3]: {
-       "texts": ["이마트24"],
-       "images": [""],
-       "videos": [""]
+        "texts": ["이마트24"],
+        "images": [""],
+        "videos": [""]
      },
 }
 
@@ -186,12 +307,12 @@ if st.session_state.img_bytes:
             st.markdown(
                 f"""
                 <div class="prob-card">
-                  <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-                    <strong>{lbl}</strong><span>{pct:.2f}%</span>
-                  </div>
-                  <div class="prob-bar-bg">
-                    <div class="prob-bar-fg {hi}" style="width:{pct:.4f}%;"></div>
-                  </div>
+                    <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                        <strong>{lbl}</strong><span>{pct:.2f}%</span>
+                    </div>
+                    <div class="prob-bar-bg">
+                        <div class="prob-bar-fg {hi}" style="width:{pct:.4f}%;"></div>
+                    </div>
                 </div>
                 """, unsafe_allow_html=True
             )
@@ -213,8 +334,8 @@ if st.session_state.img_bytes:
                 for t in texts:
                     st.markdown(f"""
                     <div class="card" style="grid-column:span 12;">
-                      <h4>텍스트</h4>
-                      <div>{t}</div>
+                        <h4>텍스트</h4>
+                        <div>{t}</div>
                     </div>
                     """, unsafe_allow_html=True)
                 st.markdown('</div>', unsafe_allow_html=True)
@@ -225,8 +346,8 @@ if st.session_state.img_bytes:
                 for url in images[:3]:
                     st.markdown(f"""
                     <div class="card" style="grid-column:span 4;">
-                      <h4>이미지</h4>
-                      <img src="{url}" class="thumb" />
+                        <h4>이미지</h4>
+                        <img src="{url}" class="thumb" />
                     </div>
                     """, unsafe_allow_html=True)
                 st.markdown('</div>', unsafe_allow_html=True)
@@ -238,20 +359,20 @@ if st.session_state.img_bytes:
                     thumb = yt_thumb(v)
                     if thumb:
                         st.markdown(f"""
-                        <div class="card" style="grid-column:span 6;">
-                          <h4>동영상</h4>
-                          <a href="{v}" target="_blank" class="thumb-wrap">
-                            <img src="{thumb}" class="thumb"/>
-                            <div class="play"></div>
-                          </a>
-                          <div class="helper">{v}</div>
+                        <div class="card" style="grid-column:span 4;">
+                            <h4>동영상</h4>
+                            <a href="{v}" target="_blank" class="thumb-wrap">
+                                <img src="{thumb}" class="thumb"/>
+                                <div class="play"></div>
+                            </a>
+                            <div class="helper">{v}</div>
                         </div>
                         """, unsafe_allow_html=True)
                     else:
                         st.markdown(f"""
-                        <div class="card" style="grid-column:span 6;">
-                          <h4>동영상</h4>
-                          <a href="{v}" target="_blank">{v}</a>
+                        <div class="card" style="grid-column:span 4;">
+                            <h4>동영상</h4>
+                            <a href="{v}" target="_blank">{v}</a>
                         </div>
                         """, unsafe_allow_html=True)
 else:
