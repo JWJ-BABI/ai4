@@ -85,6 +85,12 @@ CONTENT_BY_LABEL: dict[str, dict[str, list[str]]] = {
        "images": ["https://flexible.img.hani.co.kr/flexible/normal/800/232/imgdb/original/2022/0412/20220412502070.jpg"],
        "videos": ["https://www.youtube.com/shorts/q38uSXWTAeE","https://www.youtube.com/shorts/LWHSvZc6k_g"]
      },
+
+     labels[3]: {
+       "texts": ["이마트24"],
+       "images": [""],
+       "videos": [""]
+     },
 }
 
 # ======================
