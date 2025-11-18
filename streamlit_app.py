@@ -71,17 +71,17 @@ st.markdown("---")
 CONTENT_BY_LABEL: dict[str, dict[str, list[str]]] = {
 
      labels[0]: {
-       "texts": [""],
+       "texts": ["GS25는 혜자도시락이 유명합니다."],
        "images": [""],
        "videos": [""]
      },
      labels[1]: {
-       "texts": [""],
+       "texts": ["세븐일레븐은 일본 콜라보 상품을 많이 팔아요."],
        "images": [""],
        "videos": [""]
      },
      labels[2]: {
-       "texts": [""],
+       "texts": ["씨유는 혜자도시락이 유명합니다."],
        "images": [""],
        "videos": [""]
      },
